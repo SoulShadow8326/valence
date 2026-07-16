@@ -5,9 +5,6 @@ import (
 	"fmt"
 )
 
-
-
-
 func Validate(a Atom) error {
 	if !validKinds[a.Kind] {
 		return fmt.Errorf("atom: unknown kind %q", a.Kind)
@@ -65,8 +62,6 @@ func Validate(a Atom) error {
 
 	return nil
 }
-
-
 
 func Verify(a Atom) error {
 	if err := Validate(a); err != nil {

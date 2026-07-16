@@ -6,9 +6,6 @@ import (
 	"valence/protocol/atom"
 )
 
-
-
-
 func BucketIDs(ids []atom.AtomID, buckets []int) []atom.AtomID {
 	want := make(map[int]bool, len(buckets))
 	for _, b := range buckets {
@@ -23,8 +20,6 @@ func BucketIDs(ids []atom.AtomID, buckets []int) []atom.AtomID {
 	sort.Slice(out, func(i, j int) bool { return out[i].Less(out[j]) })
 	return out
 }
-
-
 
 func Missing(have, theirs []atom.AtomID) []atom.AtomID {
 	haveSet := make(map[atom.AtomID]bool, len(have))

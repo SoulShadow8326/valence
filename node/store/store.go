@@ -7,8 +7,6 @@ import (
 	"valence/protocol/atom"
 )
 
-
-
 type Store struct {
 	mu        sync.RWMutex
 	atoms     map[atom.AtomID]atom.Atom
@@ -22,17 +20,6 @@ func New() *Store {
 	}
 }
 
-
-
-
-
-
-
-
-
-
-
-
 func (s *Store) Put(a atom.Atom) error {
 	id := atom.ID(a)
 	s.mu.Lock()
@@ -43,7 +30,6 @@ func (s *Store) Put(a atom.Atom) error {
 	}
 	return nil
 }
-
 
 func (s *Store) FirstSeen(id atom.AtomID) (time.Time, bool) {
 	s.mu.RLock()
@@ -78,11 +64,6 @@ func (s *Store) IDs() []atom.AtomID {
 	}
 	return out
 }
-
-
-
-
-
 
 func (s *Store) Delete(id atom.AtomID) {
 	s.mu.Lock()

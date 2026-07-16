@@ -5,16 +5,6 @@ import (
 	"strings"
 )
 
-
-
-
-
-
-
-
-
-
-
 func NormalizeTag(s string) string {
 	s = strings.TrimSpace(s)
 	s = strings.ToLower(s)
@@ -39,10 +29,6 @@ func collapseSpaces(s string) string {
 	return b.String()
 }
 
-
-
-
-
 func NormalizeTags(tags []string) []string {
 	seen := make(map[string]bool, len(tags))
 	out := make([]string, 0, len(tags))
@@ -57,9 +43,6 @@ func NormalizeTags(tags []string) []string {
 	sort.Strings(out)
 	return out
 }
-
-
-
 
 func NormalizeRefs(refs []AtomID) []AtomID {
 	seen := make(map[AtomID]bool, len(refs))

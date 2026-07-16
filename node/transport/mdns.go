@@ -14,11 +14,6 @@ const (
 	domain      = "local."
 )
 
-
-
-
-
-
 type MDNS struct {
 	selfPubB64 string
 
@@ -31,9 +26,6 @@ type MDNS struct {
 	cancel  context.CancelFunc
 }
 
-
-
-
 func NewMDNS(pubKey []byte, listenAddr string) (*MDNS, error) {
 	ln, err := net.Listen("tcp", listenAddr)
 	if err != nil {
@@ -43,16 +35,6 @@ func NewMDNS(pubKey []byte, listenAddr string) (*MDNS, error) {
 
 	pkB64 := base64.StdEncoding.EncodeToString(pubKey)
 	instance := "valence-" + pkB64[:12]
-
-
-
-
-
-
-
-
-
-
 
 	server, err := zeroconf.RegisterProxy(instance, serviceType, domain, port, instance+".local.", []string{"127.0.0.1"}, []string{"id=" + pkB64, "v=1"}, nil)
 	if err != nil {

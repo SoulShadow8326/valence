@@ -1,9 +1,5 @@
 package bond
 
-
-
-
-
 type Threshold struct {
 	Num, Den int
 }
@@ -14,9 +10,6 @@ var (
 	ThresholdContradicts  = Threshold{1, 2}
 )
 
-
-
-
 func jaccardMeets(a, b []string, th Threshold) bool {
 	inter, union := overlapCounts(a, b)
 	if union == 0 {
@@ -25,8 +18,6 @@ func jaccardMeets(a, b []string, th Threshold) bool {
 	return inter*th.Den >= th.Num*union
 }
 
-
-
 func jaccardFloat(a, b []string) float64 {
 	inter, union := overlapCounts(a, b)
 	if union == 0 {
@@ -34,7 +25,6 @@ func jaccardFloat(a, b []string) float64 {
 	}
 	return float64(inter) / float64(union)
 }
-
 
 func overlapCounts(a, b []string) (inter, union int) {
 	i, j := 0, 0

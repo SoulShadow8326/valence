@@ -16,10 +16,6 @@ import (
 	"valence/protocol/bond"
 )
 
-
-
-
-
 type Node struct {
 	Keys      keystore.KeyPair
 	Store     *store.Store
@@ -47,10 +43,6 @@ func (n *Node) Run() {
 
 func (n *Node) Stop() { close(n.stop) }
 
-
-
-
-
 func (n *Node) Publish(kind atom.Kind, tags []string, payload map[string]string, refs []atom.AtomID) (atom.Atom, error) {
 	n.seqMu.Lock()
 	seq := n.nextSeq
@@ -66,8 +58,6 @@ func (n *Node) Publish(kind atom.Kind, tags []string, payload map[string]string,
 	}
 	return a, nil
 }
-
-
 
 func (n *Node) Graph() (atoms []atom.Atom, bonds []bond.Bond, molecules []bond.Molecule, hash [32]byte) {
 	atoms = n.Store.All()
@@ -138,19 +128,6 @@ func (n *Node) dialAndSync(addr string) {
 	log.Printf("engine: synced with %x (initiator): pulled=%d pushed=%d", peerPub[:4], pulled, pushed)
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
 func (n *Node) gcLoop() {
 	ticker := time.NewTicker(60 * time.Second)
 	defer ticker.Stop()
@@ -166,10 +143,6 @@ func (n *Node) gcLoop() {
 	}
 }
 
-
-
-
-
 func (n *Node) syncLoop() {
 	ticker := time.NewTicker(5 * time.Second)
 	defer ticker.Stop()
@@ -183,10 +156,6 @@ func (n *Node) syncLoop() {
 				if len(bindings) == 0 {
 					continue
 				}
-
-
-
-
 
 				addr := bindings[0].Addr
 				go func(addr string) {

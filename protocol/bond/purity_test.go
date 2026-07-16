@@ -6,18 +6,6 @@ import (
 	"testing"
 )
 
-
-
-
-
-
-
-
-
-
-
-
-
 func TestBondPurity(t *testing.T) {
 	out, err := exec.Command("go", "list", "-f", "{{join .Imports \"\\n\"}}", ".").Output()
 	if err != nil {

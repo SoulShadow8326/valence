@@ -22,7 +22,6 @@ func newKP(t *testing.T) kp {
 	return kp{pub, priv}
 }
 
-
 func mkAtom(t *testing.T, k kp, kind atom.Kind, tags []string, payload map[string]string, refs []atom.AtomID, seq uint64) atom.Atom {
 	t.Helper()
 	a, err := atom.New(kind, tags, payload, refs, seq, k.priv, k.pub)
@@ -31,8 +30,6 @@ func mkAtom(t *testing.T, k kp, kind atom.Kind, tags []string, payload map[strin
 	}
 	return a
 }
-
-
 
 func TestPermutationInvariance(t *testing.T) {
 	a, b, c := newKP(t), newKP(t), newKP(t)
@@ -59,12 +56,8 @@ func TestPermutationInvariance(t *testing.T) {
 	}
 }
 
-
-
-
 func TestThresholdExactness(t *testing.T) {
 	a, b := newKP(t), newKP(t)
-
 
 	need := mkAtom(t, a, atom.KindNeed, []string{"x"}, map[string]string{"resource": "r", "quantity": "1"}, nil, 0)
 	capacity := mkAtom(t, b, atom.KindCapacity, []string{"x", "y", "z"}, map[string]string{"resource": "r", "quantity": "1"}, nil, 0)
@@ -72,7 +65,6 @@ func TestThresholdExactness(t *testing.T) {
 	if !hasBondType(bonds, Satisfies) {
 		t.Fatalf("J=1/3 exactly must satisfy (>=), got bonds: %+v", bonds)
 	}
-
 
 	o1 := mkAtom(t, a, atom.KindObservation, []string{"x"}, map[string]string{"subject": "s", "state": "clear"}, nil, 0)
 	o2 := mkAtom(t, b, atom.KindObservation, []string{"x", "y"}, map[string]string{"subject": "s", "state": "clear"}, nil, 0)
@@ -91,9 +83,6 @@ func hasBondType(bonds []Bond, ty Type) bool {
 	return false
 }
 
-
-
-
 func TestSelfCorroborationZero(t *testing.T) {
 	a := newKP(t)
 	var atoms []atom.Atom
@@ -107,7 +96,6 @@ func TestSelfCorroborationZero(t *testing.T) {
 		}
 	}
 }
-
 
 func TestCorroboratesContradictsExclusive(t *testing.T) {
 	a, b := newKP(t), newKP(t)
@@ -125,7 +113,6 @@ func TestCorroboratesContradictsExclusive(t *testing.T) {
 		t.Fatalf("expected only CONTRADICTS, got %+v", bonds)
 	}
 }
-
 
 func TestWorkedExample(t *testing.T) {
 	a, b, c := newKP(t), newKP(t), newKP(t)
@@ -164,7 +151,6 @@ func TestWorkedExample(t *testing.T) {
 		t.Fatalf("expected STABLE after a4, got %s", mols[0].Stability)
 	}
 
-
 	d := newKP(t)
 	a5 := mkAtom(t, d, atom.KindObservation, []string{"sector7", "road", "water"}, map[string]string{"subject": "route-sector3-sector7", "state": "flooded"}, nil, 0)
 	a6 := mkAtom(t, c, atom.KindObservation, []string{"sector7", "road", "water"}, map[string]string{"subject": "route-sector3-sector7", "state": "clear"}, nil, 1)
@@ -184,8 +170,6 @@ func TestWorkedExample(t *testing.T) {
 		t.Fatalf("expected an UNSTABLE molecule after contradiction, got %+v", mols)
 	}
 }
-
-
 
 func TestIsolatedAtomIsOwnMolecule(t *testing.T) {
 	a := newKP(t)

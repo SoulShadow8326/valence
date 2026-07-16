@@ -7,11 +7,7 @@ import (
 	"io"
 )
 
-
-
 const maxCipherBytes = 16 * 1024
-
-
 
 func EncodeFrame(f Frame) []byte {
 	var buf bytes.Buffer
@@ -25,9 +21,6 @@ func EncodeFrame(f Frame) []byte {
 	buf.Write(f.Cipher)
 	return buf.Bytes()
 }
-
-
-
 
 func DecodeFrame(b []byte) (Frame, error) {
 	if len(b) < 32+4+4 {

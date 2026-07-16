@@ -8,9 +8,6 @@ import (
 	psync "valence/protocol/sync"
 )
 
-
-
-
 func runInitiator(conn io.ReadWriter, st *store.Store) (pulled, pushed int, err error) {
 	myIDs := st.IDs()
 	digest := psync.BuildDigest(myIDs)
@@ -55,10 +52,6 @@ func runInitiator(conn io.ReadWriter, st *store.Store) (pulled, pushed int, err 
 	pulled, err = recvAtomsBatched(conn, st)
 	return
 }
-
-
-
-
 
 func runResponder(conn io.ReadWriter, st *store.Store) (pulled, pushed int, err error) {
 	digestBytes, err := readFrame(conn)
@@ -111,9 +104,6 @@ func runResponder(conn io.ReadWriter, st *store.Store) (pulled, pushed int, err 
 	return
 }
 
-
-
-
 func sendAtomsBatched(w io.Writer, atoms []atom.Atom) error {
 	for i := 0; i < len(atoms); i += psync.MaxAtomsPerMessage {
 		end := i + psync.MaxAtomsPerMessage
@@ -126,10 +116,6 @@ func sendAtomsBatched(w io.Writer, atoms []atom.Atom) error {
 	}
 	return writeFrame(w, psync.EncodeAtoms(nil))
 }
-
-
-
-
 
 func recvAtomsBatched(r io.Reader, st *store.Store) (int, error) {
 	total := 0

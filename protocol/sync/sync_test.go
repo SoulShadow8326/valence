@@ -37,10 +37,6 @@ func containsID(ids []atom.AtomID, target atom.AtomID) bool {
 	return false
 }
 
-
-
-
-
 func simulateRound(a, b []atom.AtomID) (aWants, bWants []atom.AtomID) {
 	digestA := BuildDigest(a)
 	digestB := BuildDigest(b)
@@ -103,7 +99,6 @@ func TestMalformedLengthRejectedWithoutAllocating(t *testing.T) {
 	if _, err := DecodeAtoms(b); err == nil {
 		t.Fatal("expected rejection of oversized atom count")
 	}
-
 
 	b2 := []byte{TagAtoms, 1, 0, 0, 0, 0xFF, 0xFF, 0xFF, 0xFF}
 	if _, err := DecodeAtoms(b2); err == nil {

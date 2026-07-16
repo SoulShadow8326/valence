@@ -15,7 +15,6 @@ func testKeypair(t *testing.T) (ed25519.PublicKey, ed25519.PrivateKey) {
 	return pub, priv
 }
 
-
 func mustAtom(t *testing.T) Atom {
 	t.Helper()
 	pub, priv := testKeypair(t)

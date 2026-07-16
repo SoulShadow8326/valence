@@ -13,8 +13,6 @@ import (
 
 const hsDomain = "valence-lip-v1-hs"
 
-
-
 type Session struct {
 	SessionID [32]byte
 	SendChain [32]byte
@@ -79,12 +77,6 @@ func readSig(r io.Reader) ([]byte, error) {
 	return sig, err
 }
 
-
-
-
-
-
-
 func transcript(idA ed25519.PublicKey, ephA []byte, nonceA [32]byte, idB ed25519.PublicKey, ephB []byte, nonceB [32]byte) []byte {
 	loID, loEph, loNonce := idA, ephA, nonceA
 	hiID, hiEph, hiNonce := idB, ephB, nonceB
@@ -113,10 +105,6 @@ func bytesGreater(a, b []byte) bool {
 func signedMessage(t []byte) []byte {
 	return append([]byte(hsDomain), t...)
 }
-
-
-
-
 
 func Initiate(rw io.ReadWriter, selfID ed25519.PublicKey, selfPriv ed25519.PrivateKey) (*Session, error) {
 	curve := ecdh.X25519()
@@ -159,7 +147,6 @@ func Initiate(rw io.ReadWriter, selfID ed25519.PublicKey, selfPriv ed25519.Priva
 	return deriveSession(t, shared, selfID, idB)
 }
 
-
 func Accept(rw io.ReadWriter, selfID ed25519.PublicKey, selfPriv ed25519.PrivateKey) (*Session, error) {
 	curve := ecdh.X25519()
 	idA, ephA, nonceA, err := readShare(rw)
@@ -199,10 +186,6 @@ func Accept(rw io.ReadWriter, selfID ed25519.PublicKey, selfPriv ed25519.Private
 	}
 	return deriveSession(t, shared, selfID, idA)
 }
-
-
-
-
 
 func deriveSession(t []byte, shared []byte, selfID, peerID ed25519.PublicKey) (*Session, error) {
 	sessionID := sha256.Sum256(t)

@@ -2,19 +2,10 @@ package transport
 
 import "net"
 
-
-
-
 type Advert struct {
 	Addr   string
 	PubKey []byte
 }
-
-
-
-
-
-
 
 type Transport interface {
 	Name() string

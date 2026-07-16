@@ -7,18 +7,11 @@ import (
 	"valence/protocol/atom"
 )
 
-
-
 const NumBuckets = 256
-
-
-
 
 type Digest struct {
 	Buckets [NumBuckets][32]byte
 }
-
-
 
 func BuildDigest(ids []atom.AtomID) Digest {
 	buckets := make([][]atom.AtomID, NumBuckets)
@@ -39,8 +32,6 @@ func BuildDigest(ids []atom.AtomID) Digest {
 	}
 	return d
 }
-
-
 
 func MismatchedBuckets(a, b Digest) []int {
 	var out []int

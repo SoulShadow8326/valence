@@ -9,15 +9,11 @@ import (
 	"golang.org/x/crypto/chacha20poly1305"
 )
 
-
 type Frame struct {
 	SessionID [32]byte
 	Ctr       uint32
 	Cipher    []byte
 }
-
-
-
 
 func nextKey(chain [32]byte) (msgKey, next [32]byte) {
 	mk := hmac.New(sha256.New, chain[:])
@@ -43,18 +39,11 @@ func frameAAD(sessionID [32]byte, ctr uint32) []byte {
 	return aad
 }
 
-
-
-
-
 func zero(b []byte) {
 	for i := range b {
 		b[i] = 0
 	}
 }
-
-
-
 
 func (s *Session) Seal(plaintext []byte) (Frame, error) {
 	msgKey, next := nextKey(s.SendChain)
@@ -72,11 +61,6 @@ func (s *Session) Seal(plaintext []byte) (Frame, error) {
 	s.SendCtr++
 	return f, nil
 }
-
-
-
-
-
 
 func (s *Session) Open(f Frame) ([]byte, error) {
 	if f.SessionID != s.SessionID {

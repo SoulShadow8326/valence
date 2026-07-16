@@ -9,9 +9,6 @@ import (
 	"valence/protocol/atom"
 )
 
-
-
-
 func GraphHash(atoms []atom.Atom, bonds []Bond) [32]byte {
 	ids := make([]atom.AtomID, len(atoms))
 	for i, a := range atoms {

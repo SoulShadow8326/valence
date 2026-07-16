@@ -8,28 +8,12 @@ import (
 	"valence/protocol/bond"
 )
 
-
-
-
 const (
 	weightAge   = 0.3
 	weightCorr  = 0.4
 	weightTrust = 0.3
 	halfLife    = 24 * time.Hour
 )
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 func Entropy(a atom.Atom, firstSeen time.Time, bonds []bond.Bond, trust *Trust) float64 {
 	id := atom.ID(a)

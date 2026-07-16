@@ -6,16 +6,7 @@ import (
 	"io"
 )
 
-
-
 const maxFrameBytes = 128 * 1024
-
-
-
-
-
-
-
 
 func writeFrame(w io.Writer, payload []byte) error {
 	var l [4]byte
@@ -26,9 +17,6 @@ func writeFrame(w io.Writer, payload []byte) error {
 	_, err := w.Write(payload)
 	return err
 }
-
-
-
 
 func readFrame(r io.Reader) ([]byte, error) {
 	var l [4]byte

@@ -6,17 +6,11 @@ import (
 	"time"
 )
 
-
-
 type Binding struct {
 	Transport string
 	Addr      string
 	LastSeen  time.Time
 }
-
-
-
-
 
 type Table struct {
 	mu       sync.RWMutex
@@ -28,8 +22,6 @@ func NewTable() *Table {
 }
 
 func keyOf(pub ed25519.PublicKey) string { return string(pub) }
-
-
 
 func (t *Table) Upsert(pub ed25519.PublicKey, transport, addr string) {
 	k := keyOf(pub)
@@ -50,7 +42,6 @@ func (t *Table) Bindings(pub ed25519.PublicKey) []Binding {
 	defer t.mu.RUnlock()
 	return append([]Binding{}, t.bindings[keyOf(pub)]...)
 }
-
 
 func (t *Table) Peers() []ed25519.PublicKey {
 	t.mu.RLock()

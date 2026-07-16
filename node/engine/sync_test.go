@@ -10,7 +10,6 @@ import (
 	"valence/protocol/bond"
 )
 
-
 func testAtom(t *testing.T, seq uint64, tag string) atom.Atom {
 	t.Helper()
 	pub, priv, err := ed25519.GenerateKey(nil)

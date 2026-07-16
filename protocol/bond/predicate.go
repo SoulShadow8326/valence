@@ -2,7 +2,6 @@ package bond
 
 import "valence/protocol/atom"
 
-
 type Type uint8
 
 const (
@@ -27,17 +26,11 @@ func (t Type) String() string {
 	}
 }
 
-
-
-
-
 type Bond struct {
 	A, B     atom.AtomID
 	Type     Type
 	Strength float64
 }
-
-
 
 func contextualizes(a, b atom.Atom, aID, bID atom.AtomID) (Bond, bool) {
 	if containsRef(a.Refs, bID) || containsRef(b.Refs, aID) {
@@ -45,8 +38,6 @@ func contextualizes(a, b atom.Atom, aID, bID atom.AtomID) (Bond, bool) {
 	}
 	return Bond{}, false
 }
-
-
 
 func satisfies(a, b atom.Atom, aID, bID atom.AtomID) (Bond, bool) {
 	var need, capacity atom.Atom
@@ -67,8 +58,6 @@ func satisfies(a, b atom.Atom, aID, bID atom.AtomID) (Bond, bool) {
 	return Bond{A: aID, B: bID, Type: Satisfies, Strength: jaccardFloat(a.Tags, b.Tags)}, true
 }
 
-
-
 func corroborates(a, b atom.Atom, aID, bID atom.AtomID) (Bond, bool) {
 	if !sameEvidenceKind(a, b) {
 		return Bond{}, false
@@ -87,10 +76,6 @@ func corroborates(a, b atom.Atom, aID, bID atom.AtomID) (Bond, bool) {
 	}
 	return Bond{A: aID, B: bID, Type: Corroborates, Strength: jaccardFloat(a.Tags, b.Tags)}, true
 }
-
-
-
-
 
 func contradicts(a, b atom.Atom, aID, bID atom.AtomID) (Bond, bool) {
 	if !sameEvidenceKind(a, b) {

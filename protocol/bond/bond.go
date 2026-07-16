@@ -6,20 +6,6 @@ import (
 	"valence/protocol/atom"
 )
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 func Bonds(atoms []atom.Atom) []Bond {
 	byID := dedupeByID(atoms)
 	ids := sortedIDs(byID)
@@ -34,7 +20,6 @@ func Bonds(atoms []atom.Atom) []Bond {
 		for j := i + 1; j < len(ordered); j++ {
 			aID, bID := ids[i], ids[j]
 			aAtom, bAtom := ordered[i], ordered[j]
-
 
 			if bID.Less(aID) {
 				aID, bID = bID, aID
@@ -55,9 +40,6 @@ func Bonds(atoms []atom.Atom) []Bond {
 	})
 	return bonds
 }
-
-
-
 
 func derivePair(a, b atom.Atom, aID, bID atom.AtomID) []Bond {
 	var out []Bond

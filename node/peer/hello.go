@@ -12,10 +12,6 @@ import (
 
 const helloDomain = "valence-hello-v1"
 
-
-
-
-
 func transcript(id ed25519.PublicKey, ownNonce, peerNonce [32]byte) []byte {
 	buf := make([]byte, 0, len(helloDomain)+len(id)+64)
 	buf = append(buf, helloDomain...)
@@ -85,9 +81,6 @@ func readHello(r io.Reader) (ed25519.PublicKey, [32]byte, []byte, error) {
 	return id, nonce, sig, err
 }
 
-
-
-
 func Initiate(rw io.ReadWriter, self keystore.KeyPair) (ed25519.PublicKey, error) {
 	var nonceA [32]byte
 	if _, err := rand.Read(nonceA[:]); err != nil {
@@ -114,7 +107,6 @@ func Initiate(rw io.ReadWriter, self keystore.KeyPair) (ed25519.PublicKey, error
 	}
 	return idB, nil
 }
-
 
 func Accept(rw io.ReadWriter, self keystore.KeyPair) (ed25519.PublicKey, error) {
 	idA, nonceA, err := readIDNonce(rw)

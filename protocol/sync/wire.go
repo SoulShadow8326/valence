@@ -9,10 +9,6 @@ import (
 	"valence/protocol/atom"
 )
 
-
-
-
-
 const (
 	TagHello    byte = 0x01
 	TagDigest   byte = 0x10
@@ -25,11 +21,7 @@ const (
 )
 
 const (
-
-
-
 	MaxIDsPerMessage = 4096
-
 
 	MaxAtomsPerMessage = 8
 	MaxAtomsBodyBytes  = 64 * 1024
@@ -40,9 +32,6 @@ func putU32(buf *bytes.Buffer, v uint32) {
 	binary.LittleEndian.PutUint32(b[:], v)
 	buf.Write(b[:])
 }
-
-
-
 
 type boundsReader struct {
 	b []byte
@@ -70,8 +59,6 @@ func (r *boundsReader) bytesN(n uint32, max int) ([]byte, error) {
 	return out, nil
 }
 
-
-
 func EncodeDigest(d Digest) []byte {
 	var buf bytes.Buffer
 	buf.WriteByte(TagDigest)
@@ -95,8 +82,6 @@ func DecodeDigest(b []byte) (Digest, error) {
 	}
 	return d, nil
 }
-
-
 
 func EncodeWant(buckets []int) []byte {
 	var buf bytes.Buffer
@@ -130,8 +115,6 @@ func DecodeWant(b []byte) ([]int, error) {
 	}
 	return out, nil
 }
-
-
 
 func encodeIDList(tag byte, ids []atom.AtomID) []byte {
 	var buf bytes.Buffer
@@ -171,8 +154,6 @@ func DecodeIDs(b []byte) ([]atom.AtomID, error) { return decodeIDList(TagIDs, b)
 
 func EncodePull(ids []atom.AtomID) []byte        { return encodeIDList(TagPull, ids) }
 func DecodePull(b []byte) ([]atom.AtomID, error) { return decodeIDList(TagPull, b) }
-
-
 
 func EncodeAtoms(atoms []atom.Atom) []byte {
 	var buf bytes.Buffer

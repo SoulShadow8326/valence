@@ -8,7 +8,6 @@ import (
 	"sort"
 )
 
-
 func putU32(buf *bytes.Buffer, v uint32) {
 	var b [4]byte
 	binary.LittleEndian.PutUint32(b[:], v)
@@ -30,11 +29,6 @@ func putU32String(buf *bytes.Buffer, s string) {
 	putU32(buf, uint32(len(s)))
 	buf.WriteString(s)
 }
-
-
-
-
-
 
 func Canonical(a Atom) []byte {
 	var buf bytes.Buffer
@@ -70,17 +64,12 @@ func Canonical(a Atom) []byte {
 	return buf.Bytes()
 }
 
-
-
 func Marshal(a Atom) []byte {
 	var buf bytes.Buffer
 	buf.Write(Canonical(a))
 	putU32Bytes(&buf, a.Sig)
 	return buf.Bytes()
 }
-
-
-
 
 type reader struct {
 	b []byte
@@ -105,9 +94,6 @@ func (r *reader) u64() (uint64, error) {
 	return v, nil
 }
 
-
-
-
 func (r *reader) bytesN(n uint32, max int) ([]byte, error) {
 	if int(n) > max {
 		return nil, fmt.Errorf("atom: field length %d exceeds max %d", n, max)
@@ -131,9 +117,6 @@ func (r *reader) stringN(max int) (string, error) {
 	}
 	return string(b), nil
 }
-
-
-
 
 func Unmarshal(b []byte) (Atom, error) {
 	if len(b) > MaxEncodedBytes+4+64 {

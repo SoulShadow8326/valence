@@ -43,8 +43,6 @@ func newSessionPair(t *testing.T) (a, b *Session) {
 	return ra.s, rb.s
 }
 
-
-
 func TestHandshakeAgreement(t *testing.T) {
 	a, b := newSessionPair(t)
 	if a.SessionID != b.SessionID {
@@ -58,10 +56,6 @@ func TestHandshakeAgreement(t *testing.T) {
 	}
 }
 
-
-
-
-
 func TestMITMRejected(t *testing.T) {
 	idB, _ := newIdentity(t)
 	idMallory, privMallory := newIdentity(t)
@@ -71,8 +65,6 @@ func TestMITMRejected(t *testing.T) {
 	var nonceB, nonceA [32]byte
 	nonceB[0], nonceA[0] = 3, 4
 
-
-
 	forged := transcript(idMallory, ephMallory[:], nonceB, idB, ephB[:], nonceA)
 	sig := ed25519.Sign(privMallory, signedMessage(forged))
 
@@ -81,10 +73,6 @@ func TestMITMRejected(t *testing.T) {
 		t.Fatal("mallory's signature verified under a transcript she didn't sign")
 	}
 }
-
-
-
-
 
 func TestRatchetForwardSecrecy(t *testing.T) {
 	a, _ := newSessionPair(t)
@@ -107,8 +95,6 @@ func TestRatchetForwardSecrecy(t *testing.T) {
 	}
 }
 
-
-
 func TestReplayRejected(t *testing.T) {
 	a, b := newSessionPair(t)
 	f, err := a.Seal([]byte("hello"))
@@ -122,9 +108,6 @@ func TestReplayRejected(t *testing.T) {
 		t.Fatal("replayed frame was accepted")
 	}
 }
-
-
-
 
 func TestNonceUniqueness(t *testing.T) {
 	a, _ := newSessionPair(t)
@@ -175,9 +158,6 @@ func TestEndToEndConversationAndCrystallize(t *testing.T) {
 	if string(pt) != "the bridge at sector3 is out" {
 		t.Fatalf("got %q", pt)
 	}
-
-
-
 
 	pub, priv := newIdentity(t)
 	crystallized, err := Crystallize(atom.KindObservation,

@@ -7,9 +7,6 @@ import (
 	"fmt"
 )
 
-
-
-
 type Kind string
 
 const (
@@ -28,7 +25,6 @@ var validKinds = map[Kind]bool{
 	KindClaim:       true,
 }
 
-
 var requiredPayloadKeys = map[Kind][]string{
 	KindNeed:        {"resource", "quantity"},
 	KindCapacity:    {"resource", "quantity"},
@@ -36,7 +32,6 @@ var requiredPayloadKeys = map[Kind][]string{
 	KindObservation: {"subject", "state"},
 	KindClaim:       {"subject", "state"},
 }
-
 
 const (
 	MaxTags              = 32
@@ -48,12 +43,9 @@ const (
 	MaxEncodedBytes      = 8192
 )
 
-
 type AtomID [32]byte
 
 func (id AtomID) String() string { return hex.EncodeToString(id[:]) }
-
-
 
 func (id AtomID) Less(other AtomID) bool { return bytes.Compare(id[:], other[:]) < 0 }
 
@@ -70,17 +62,10 @@ func ParseAtomID(s string) (AtomID, error) {
 	return id, nil
 }
 
-
-
-
-
-
 type Clock struct {
 	Pub []byte
 	Seq uint64
 }
-
-
 
 type Atom struct {
 	Kind    Kind
@@ -91,9 +76,6 @@ type Atom struct {
 	PubKey  []byte
 	Sig     []byte
 }
-
-
-
 
 func New(kind Kind, tags []string, payload map[string]string, refs []AtomID, seq uint64, priv ed25519.PrivateKey, pub ed25519.PublicKey) (Atom, error) {
 	a := Atom{

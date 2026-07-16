@@ -17,7 +17,6 @@ type Server struct {
 	mux  *http.ServeMux
 }
 
-
 func New(n *engine.Node) *Server {
 	s := &Server{Node: n, mux: http.NewServeMux()}
 	s.mux.HandleFunc("/graph", s.handleGraph)
@@ -59,11 +58,6 @@ func writeJSON(w http.ResponseWriter, v any) {
 	w.Header().Set("Content-Type", "application/json")
 	_ = json.NewEncoder(w).Encode(v)
 }
-
-
-
-
-
 
 type atomDTO struct {
 	ID      string            `json:"id"`
@@ -119,8 +113,6 @@ type graphDTO struct {
 	GraphHash string        `json:"graphHash"`
 }
 
-
-
 func (s *Server) handleGraph(w http.ResponseWriter, r *http.Request) {
 	atoms, bonds, mols, hash := s.Node.Graph()
 	writeJSON(w, graphDTO{
@@ -169,14 +161,6 @@ func (s *Server) handleIdentity(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, map[string]string{"pubKey": hex.EncodeToString(s.Node.Keys.Pub)})
 }
 
-
-
-
-
-
-
-
-
 func (s *Server) handleEvents(w http.ResponseWriter, r *http.Request) {
 	flusher, ok := w.(http.Flusher)
 	if !ok {
@@ -204,8 +188,6 @@ func (s *Server) handleEvents(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 }
-
-
 
 type lipDialReq struct {
 	Addr string `json:"addr"`
@@ -251,11 +233,6 @@ func (s *Server) handleLipSend(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, map[string]bool{"ok": true})
 }
 
-
-
-
-
-
 func (s *Server) handleLipEvents(w http.ResponseWriter, r *http.Request) {
 	flusher, ok := w.(http.Flusher)
 	if !ok {
@@ -281,16 +258,6 @@ func (s *Server) handleLipEvents(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 }
-
-
-
-
-
-
-
-
-
-
 
 func (s *Server) handleCrystallize(w http.ResponseWriter, r *http.Request) {
 	s.handlePublish(w, r)

@@ -14,7 +14,6 @@ import (
 	"valence/node/transport"
 )
 
-
 func main() {
 	dataDir := flag.String("data", "./data", "data directory for this node's identity")
 	listenAddr := flag.String("listen", "0.0.0.0:0", "TCP listen address for peer sync")

@@ -19,12 +19,6 @@ func kp(t *testing.T) (ed25519.PublicKey, ed25519.PrivateKey) {
 	return pub, priv
 }
 
-
-
-
-
-
-
 func TestOppositeTrustModelsStillConverge(t *testing.T) {
 	pubA, privA := kp(t)
 	pubB, privB := kp(t)
@@ -62,8 +56,6 @@ func TestOppositeTrustModelsStillConverge(t *testing.T) {
 		t.Fatalf("opposite trust models produced different graphs: %x vs %x", gx, gy)
 	}
 
-
-
 	exA := Entropy(a1, mustFirstSeen(t, stX, a1), bond.Bonds(stX.All()), trustX)
 	eyA := Entropy(a1, mustFirstSeen(t, stY, a1), bond.Bonds(stY.All()), trustY)
 	if exA == eyA {
@@ -92,15 +84,12 @@ func TestSweepDropsHighEntropyKeepsLow(t *testing.T) {
 	trust := NewTrust()
 	trust.Set(pub, 1.0)
 
-
-
 	if dropped := Sweep(st, trust, GCThreshold); dropped != 0 {
 		t.Fatalf("expected fresh trusted atom to survive sweep, dropped=%d", dropped)
 	}
 	if st.Len() != 1 {
 		t.Fatal("atom should still be in store")
 	}
-
 
 	dropped := Sweep(st, trust, 0)
 	if dropped != 1 || st.Len() != 0 {
@@ -119,7 +108,6 @@ func TestSweepIsIdempotentAfterDrop(t *testing.T) {
 	if st.Len() != 0 {
 		t.Fatal("expected atom dropped")
 	}
-
 
 	st.Put(a)
 	fs, ok := st.FirstSeen(atom.ID(a))

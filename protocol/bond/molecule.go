@@ -8,8 +8,6 @@ import (
 	"valence/protocol/atom"
 )
 
-
-
 type Stability uint8
 
 const (
@@ -29,16 +27,12 @@ func (s Stability) String() string {
 	}
 }
 
-
 type Molecule struct {
 	ID        [32]byte
 	Members   []atom.AtomID
 	Bonds     []Bond
 	Stability Stability
 }
-
-
-
 
 func Molecules(atoms []atom.Atom, bonds []Bond) []Molecule {
 	byID := dedupeByID(atoms)
@@ -94,9 +88,6 @@ func moleculeID(members []atom.AtomID) [32]byte {
 	return sha256.Sum256(buf)
 }
 
-
-
-
 func evaluateStability(byID map[atom.AtomID]atom.Atom, members []atom.AtomID, bonds []Bond) Stability {
 	for _, b := range bonds {
 		if b.Type == Contradicts {
@@ -131,11 +122,6 @@ func evaluateStability(byID map[atom.AtomID]atom.Atom, members []atom.AtomID, bo
 	}
 	return Stable
 }
-
-
-
-
-
 
 type unionFind struct {
 	parent map[atom.AtomID]atom.AtomID

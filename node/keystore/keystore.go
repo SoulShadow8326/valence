@@ -16,10 +16,6 @@ type KeyPair struct {
 	Priv ed25519.PrivateKey
 }
 
-
-
-
-
 func LoadOrCreate(path string) (KeyPair, error) {
 	b, err := os.ReadFile(path)
 	if err == nil {

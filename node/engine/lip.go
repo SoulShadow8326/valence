@@ -10,14 +10,6 @@ import (
 	"valence/protocol/lip"
 )
 
-
-
-
-
-
-
-
-
 type LipManager struct {
 	keys     keystore.KeyPair
 	listener net.Listener
@@ -33,8 +25,6 @@ type lipConn struct {
 	session *lip.Session
 	mu      sync.Mutex
 }
-
-
 
 type LipEvent struct {
 	SessionID string
@@ -77,8 +67,6 @@ func (m *LipManager) acceptLoop() {
 		}()
 	}
 }
-
-
 
 func (m *LipManager) Dial(addr string) (string, error) {
 	conn, err := net.Dial("tcp", addr)
@@ -130,8 +118,6 @@ func (m *LipManager) readLoop(key string, lc *lipConn) {
 	}
 }
 
-
-
 func (m *LipManager) Send(sessionID string, plaintext []byte) error {
 	m.mu.Lock()
 	lc, ok := m.sessions[sessionID]
@@ -149,8 +135,6 @@ func (m *LipManager) Send(sessionID string, plaintext []byte) error {
 	return writeFrame(lc.conn, lip.EncodeFrame(f))
 }
 
-
-
 func (m *LipManager) CloseSession(sessionID string) {
 	m.mu.Lock()
 	lc, ok := m.sessions[sessionID]
@@ -160,7 +144,6 @@ func (m *LipManager) CloseSession(sessionID string) {
 		lc.conn.Close()
 	}
 }
-
 
 func (m *LipManager) PeerOf(sessionID string) (string, bool) {
 	m.mu.Lock()

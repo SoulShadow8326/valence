@@ -8,7 +8,6 @@ import (
 	"valence/node/keystore"
 )
 
-
 func kp(t *testing.T) keystore.KeyPair {
 	t.Helper()
 	pub, priv, err := ed25519.GenerateKey(nil)
@@ -53,10 +52,6 @@ func TestHelloHandshakeAgrees(t *testing.T) {
 	}
 }
 
-
-
-
-
 func TestHelloReplayRejected(t *testing.T) {
 	a := kp(t)
 	var nonceA, nonceB, nonceReplayed [32]byte
@@ -77,10 +72,6 @@ func TestHelloMITMRejected(t *testing.T) {
 	var nonceA, nonceM [32]byte
 	nonceA[0], nonceM[0] = 1, 2
 	sigMallory := ed25519.Sign(mallory.Priv, transcript(mallory.Pub, nonceM, nonceA))
-
-
-
-
 
 	if ed25519.Verify(b.Pub, transcript(mallory.Pub, nonceM, nonceA), sigMallory) {
 		t.Fatal("mallory's signature should not verify under b's key")

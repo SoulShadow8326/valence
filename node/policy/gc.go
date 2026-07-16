@@ -6,18 +6,7 @@ import (
 	"valence/protocol/bond"
 )
 
-
-
-
-
-
 const GCThreshold = 0.8
-
-
-
-
-
-
 
 func Sweep(st *store.Store, trust *Trust, threshold float64) int {
 	atoms := st.All()
