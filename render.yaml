@@ -1,0 +1,25 @@
+services:
+  # ── Go Gateway ──────────────────────────────────────────────────────────────
+  - type: web
+    name: valence-gateway
+    runtime: go
+    rootDir: node
+    buildCommand: go build -o gateway ./gateway
+    startCommand: ./gateway -addr 0.0.0.0:$PORT
+    envVars:
+      - key: GEMINI_API_KEY
+        sync: false          # set manually in Render dashboard
+
+  # ── Next.js UI ──────────────────────────────────────────────────────────────
+  - type: web
+    name: valence-ui
+    runtime: node
+    rootDir: ui
+    buildCommand: npm ci && npm run build
+    startCommand: npm run start -- -p $PORT
+    envVars:
+      - key: NEXT_PUBLIC_NODE_URL
+        fromService:
+          name: valence-gateway
+          type: web
+          property: host            # auto-wired to gateway's public URL
