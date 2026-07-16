@@ -4,6 +4,7 @@ import "./style.css";
 import Topbar from "./components/topbar";
 import Listview, { ChatPreview } from "./components/listview";
 import ChatPage from "./pages/chat";
+import Bottombar from "./components/bottomnav";
 import { useState } from "react";
 
 const chats: ChatPreview[] = [
@@ -20,6 +21,7 @@ export default function Home() {
       <div className={`listpane ${selectedChat ? "dimmed" : ""}`}>
         <Topbar />
         <Listview chats={chats} onSelectChat={setSelectedChat} />
+        <Bottombar />
       </div>
       <ChatPage chat={selectedChat} isOpen={Boolean(selectedChat)} onBack={() => setSelectedChat(null)} />
     </div>

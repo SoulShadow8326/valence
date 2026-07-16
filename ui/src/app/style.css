@@ -6,6 +6,7 @@
 }
 .listpane {
     min-height: 100vh;
+    padding-bottom: 74px;
     transition: transform 180ms ease, opacity 180ms ease;
 }
 .listpane.dimmed {
@@ -182,4 +183,47 @@
 }
 .composer input::placeholder {
     color: #9a9a9a;
+}
+.bottombar {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 5;
+    display: flex;
+    justify-content: space-around;
+    padding: 8px 6px 10px;
+    background: #050505;
+    border-top: 1px solid #222222;
+}
+.bottombar button {
+    position: relative;
+    display: grid;
+    justify-items: center;
+    gap: 2px;
+    min-width: 56px;
+    border: 0;
+    color: #9a9a9a;
+    background: transparent;
+    cursor: pointer;
+}
+.bottombar .active {
+    color: white;
+    font-weight: 700;
+}
+.bottombar p {
+    font-size: 0.72em;
+}
+.bottombar span {
+    position: absolute;
+    top: -4px;
+    right: 13px;
+    display: grid;
+    place-items: center;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    color: white;
+    background: #1fb66d;
+    font-size: 0.7em;
 }
