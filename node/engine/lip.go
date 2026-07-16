@@ -4,11 +4,17 @@ import (
 	"encoding/hex"
 	"fmt"
 	"net"
+	"sort"
 	"sync"
 
 	"valence/node/keystore"
 	"valence/protocol/lip"
 )
+
+type SessionInfo struct {
+	ID     string `json:"id"`
+	PeerID string `json:"peerId"`
+}
 
 type LipManager struct {
 	keys     keystore.KeyPair
@@ -153,4 +159,15 @@ func (m *LipManager) PeerOf(sessionID string) (string, bool) {
 		return "", false
 	}
 	return hex.EncodeToString(lc.session.PeerID), true
+}
+
+func (m *LipManager) Sessions() []SessionInfo {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	out := make([]SessionInfo, 0, len(m.sessions))
+	for key, lc := range m.sessions {
+		out = append(out, SessionInfo{ID: key, PeerID: hex.EncodeToString(lc.session.PeerID)})
+	}
+	sort.Slice(out, func(i, j int) bool { return out[i].ID < out[j].ID })
+	return out
 }

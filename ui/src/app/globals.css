@@ -1,29 +1,97 @@
 @import "tailwindcss";
 
 :root {
-  --background: black;
-  --foreground: white;
-  --search: #323131;
+  color-scheme: light;
+
+  --font-ui: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display",
+    "Segoe UI", system-ui, sans-serif;
+
+  --bg: #f4f4f5;
+  --card: #ffffff;
+  --raised: #ebebed;
+  --line: rgba(13, 9, 14, 0.09);
+  --text: #0d090e;
+  --muted: #6f7173;
+  --faint: #a9a9ad;
+
+  --bubble: #0d090e;
+  --bubble-text: #fdfffe;
+
+  --accent: #ec1b27;
+  --accent-soft: rgba(236, 27, 39, 0.09);
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
+  --color-bg: var(--bg);
+  --color-card: var(--card);
+  --color-raised: var(--raised);
+  --color-line: var(--line);
+  --color-text: var(--text);
+  --color-muted: var(--muted);
+  --color-faint: var(--faint);
+  --color-accent: var(--accent);
+  --color-bubble: var(--bubble);
+  --color-bubble-text: var(--bubble-text);
+  --font-sans: var(--font-ui);
+  --font-brand: var(--font-montserrat);
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
+@layer base {
+  html,
+  body {
+    background: var(--bg);
+    color: var(--text);
+  }
 
+  body {
+    font-family: var(--font-ui);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  button,
+  input,
+  textarea {
+    font: inherit;
+    color: inherit;
+  }
+
+  input::placeholder,
+  textarea::placeholder {
+    color: var(--faint);
+  }
+
+  * {
+    -webkit-touch-callout: none;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+
+  input,
+  textarea,
+  [contenteditable="true"] {
+    -webkit-touch-callout: default;
+    user-select: text;
+    -webkit-user-select: text;
+  }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+[data-scroll-hide]::-webkit-scrollbar {
+  display: none;
 }
 
-button,
-input {
-  font: inherit;
+[data-scroll-hide] {
+  scrollbar-width: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }

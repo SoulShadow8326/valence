@@ -5,9 +5,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"sort"
 	"time"
 
 	"valence/node/engine"
+	"valence/node/policy"
 	"valence/protocol/atom"
 	"valence/protocol/bond"
 )
@@ -22,7 +24,9 @@ func New(n *engine.Node) *Server {
 	s.mux.HandleFunc("/graph", s.handleGraph)
 	s.mux.HandleFunc("/publish", s.handlePublish)
 	s.mux.HandleFunc("/identity", s.handleIdentity)
+	s.mux.HandleFunc("/peers", s.handlePeers)
 	s.mux.HandleFunc("/events", s.handleEvents)
+	s.mux.HandleFunc("/lip/sessions", s.handleLipSessions)
 	s.mux.HandleFunc("/lip/dial", s.handleLipDial)
 	s.mux.HandleFunc("/lip/send", s.handleLipSend)
 	s.mux.HandleFunc("/lip/events", s.handleLipEvents)
@@ -32,6 +36,12 @@ func New(n *engine.Node) *Server {
 
 func (s *Server) ListenAndServe(addr string) error {
 	return http.ListenAndServe(addr, withCORS(s.mux))
+}
+
+// Handler returns this node's HTTP handler (CORS-wrapped). The gateway uses it
+// to serve one node per tenant behind a single listener.
+func (s *Server) Handler() http.Handler {
+	return withCORS(s.mux)
 }
 
 func withCORS(h http.Handler) http.Handler {
@@ -60,13 +70,15 @@ func writeJSON(w http.ResponseWriter, v any) {
 }
 
 type atomDTO struct {
-	ID      string            `json:"id"`
-	Kind    string            `json:"kind"`
-	Tags    []string          `json:"tags"`
-	Payload map[string]string `json:"payload"`
-	Refs    []string          `json:"refs"`
-	PubKey  string            `json:"pubKey"`
-	Seq     uint64            `json:"seq"`
+	ID        string            `json:"id"`
+	Kind      string            `json:"kind"`
+	Tags      []string          `json:"tags"`
+	Payload   map[string]string `json:"payload"`
+	Refs      []string          `json:"refs"`
+	PubKey    string            `json:"pubKey"`
+	Seq       uint64            `json:"seq"`
+	FirstSeen int64             `json:"firstSeen"`
+	Entropy   float64           `json:"entropy"`
 }
 
 func toAtomDTO(a atom.Atom) atomDTO {
@@ -79,6 +91,15 @@ func toAtomDTO(a atom.Atom) atomDTO {
 		PubKey:  hex.EncodeToString(a.PubKey),
 		Seq:     a.Clock.Seq,
 	}
+}
+
+func (s *Server) toAtomDTOLocal(a atom.Atom, bonds []bond.Bond) atomDTO {
+	dto := toAtomDTO(a)
+	if seen, ok := s.Node.Store.FirstSeen(atom.ID(a)); ok {
+		dto.FirstSeen = seen.UnixMilli()
+		dto.Entropy = policy.Entropy(a, seen, bonds, s.Node.Trust)
+	}
+	return dto
 }
 
 type bondDTO struct {
@@ -116,11 +137,53 @@ type graphDTO struct {
 func (s *Server) handleGraph(w http.ResponseWriter, r *http.Request) {
 	atoms, bonds, mols, hash := s.Node.Graph()
 	writeJSON(w, graphDTO{
-		Atoms:     mapSlice(atoms, toAtomDTO),
+		Atoms:     mapSlice(atoms, func(a atom.Atom) atomDTO { return s.toAtomDTOLocal(a, bonds) }),
 		Bonds:     mapSlice(bonds, toBondDTO),
 		Molecules: mapSlice(mols, toMoleculeDTO),
 		GraphHash: hex.EncodeToString(hash[:]),
 	})
+}
+
+type peerDTO struct {
+	PubKey    string  `json:"pubKey"`
+	Transport string  `json:"transport"`
+	Addr      string  `json:"addr"`
+	LastSeen  int64   `json:"lastSeen"`
+	Trust     float64 `json:"trust"`
+}
+
+func (s *Server) handlePeers(w http.ResponseWriter, r *http.Request) {
+	pubs := s.Node.Peers.Peers()
+	out := make([]peerDTO, 0, len(pubs))
+	for _, pub := range pubs {
+		bindings := s.Node.Peers.Bindings(pub)
+		if len(bindings) == 0 {
+			continue
+		}
+		best := bindings[0]
+		for _, b := range bindings[1:] {
+			if b.LastSeen.After(best.LastSeen) {
+				best = b
+			}
+		}
+		out = append(out, peerDTO{
+			PubKey:    hex.EncodeToString(pub),
+			Transport: best.Transport,
+			Addr:      best.Addr,
+			LastSeen:  best.LastSeen.UnixMilli(),
+			Trust:     s.Node.Trust.Score(pub),
+		})
+	}
+	sort.Slice(out, func(i, j int) bool { return out[i].PubKey < out[j].PubKey })
+	writeJSON(w, out)
+}
+
+func (s *Server) handleLipSessions(w http.ResponseWriter, r *http.Request) {
+	if s.Node.Lip == nil {
+		writeJSON(w, []engine.SessionInfo{})
+		return
+	}
+	writeJSON(w, s.Node.Lip.Sessions())
 }
 
 type publishReq struct {
@@ -154,7 +217,8 @@ func (s *Server) handlePublish(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	writeJSON(w, toAtomDTO(a))
+	_, bonds, _, _ := s.Node.Graph()
+	writeJSON(w, s.toAtomDTOLocal(a, bonds))
 }
 
 func (s *Server) handleIdentity(w http.ResponseWriter, r *http.Request) {
