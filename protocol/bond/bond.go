@@ -49,6 +49,9 @@ func derivePair(a, b atom.Atom, aID, bID atom.AtomID) []Bond {
 	if bd, ok := satisfies(a, b, aID, bID); ok {
 		out = append(out, bd)
 	}
+	if bd, ok := enables(a, b, aID, bID); ok {
+		out = append(out, bd)
+	}
 	if bd, ok := corroborates(a, b, aID, bID); ok {
 		out = append(out, bd)
 	}

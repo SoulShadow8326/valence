@@ -38,8 +38,6 @@ func (s *Server) ListenAndServe(addr string) error {
 	return http.ListenAndServe(addr, withCORS(s.mux))
 }
 
-// Handler returns this node's HTTP handler (CORS-wrapped). The gateway uses it
-// to serve one node per tenant behind a single listener.
 func (s *Server) Handler() http.Handler {
 	return withCORS(s.mux)
 }

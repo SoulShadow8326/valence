@@ -15,6 +15,7 @@ const (
 	KindRoute       Kind = "ROUTE"
 	KindObservation Kind = "OBSERVATION"
 	KindClaim       Kind = "CLAIM"
+	KindProfile     Kind = "PROFILE"
 )
 
 var validKinds = map[Kind]bool{
@@ -23,6 +24,7 @@ var validKinds = map[Kind]bool{
 	KindRoute:       true,
 	KindObservation: true,
 	KindClaim:       true,
+	KindProfile:     true,
 }
 
 var requiredPayloadKeys = map[Kind][]string{
@@ -31,6 +33,7 @@ var requiredPayloadKeys = map[Kind][]string{
 	KindRoute:       {"from", "to"},
 	KindObservation: {"subject", "state"},
 	KindClaim:       {"subject", "state"},
+	KindProfile:     {"name"},
 }
 
 const (

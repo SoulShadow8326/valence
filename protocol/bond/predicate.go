@@ -9,6 +9,7 @@ const (
 	Satisfies
 	Contradicts
 	Contextualizes
+	Enables
 )
 
 func (t Type) String() string {
@@ -21,6 +22,8 @@ func (t Type) String() string {
 		return "CONTRADICTS"
 	case Contextualizes:
 		return "CONTEXTUALIZES"
+	case Enables:
+		return "ENABLES"
 	default:
 		return "UNKNOWN"
 	}
@@ -52,10 +55,58 @@ func satisfies(a, b atom.Atom, aID, bID atom.AtomID) (Bond, bool) {
 	if need.Payload["resource"] != capacity.Payload["resource"] {
 		return Bond{}, false
 	}
+	if !sharesLocation(a.Tags, b.Tags, need.Payload["resource"]) {
+		return Bond{}, false
+	}
 	if !jaccardMeets(a.Tags, b.Tags, ThresholdSatisfies) {
 		return Bond{}, false
 	}
 	return Bond{A: aID, B: bID, Type: Satisfies, Strength: jaccardFloat(a.Tags, b.Tags)}, true
+}
+
+func enables(a, b atom.Atom, aID, bID atom.AtomID) (Bond, bool) {
+	var route, other atom.Atom
+	switch {
+	case a.Kind == atom.KindRoute && (b.Kind == atom.KindNeed || b.Kind == atom.KindCapacity):
+		route, other = a, b
+	case b.Kind == atom.KindRoute && (a.Kind == atom.KindNeed || a.Kind == atom.KindCapacity):
+		route, other = b, a
+	default:
+		return Bond{}, false
+	}
+	from, to := route.Payload["from"], route.Payload["to"]
+	if (from != "" && hasTag(other.Tags, from)) || (to != "" && hasTag(other.Tags, to)) {
+		return Bond{A: aID, B: bID, Type: Enables, Strength: 1.0}, true
+	}
+	return Bond{}, false
+}
+
+func sharesLocation(a, b []string, resource string) bool {
+	i, j := 0, 0
+	for i < len(a) && j < len(b) {
+		switch {
+		case a[i] == b[j]:
+			if a[i] != resource {
+				return true
+			}
+			i++
+			j++
+		case a[i] < b[j]:
+			i++
+		default:
+			j++
+		}
+	}
+	return false
+}
+
+func hasTag(tags []string, t string) bool {
+	for _, x := range tags {
+		if x == t {
+			return true
+		}
+	}
+	return false
 }
 
 func corroborates(a, b atom.Atom, aID, bID atom.AtomID) (Bond, bool) {

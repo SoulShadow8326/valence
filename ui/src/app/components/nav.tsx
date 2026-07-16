@@ -2,13 +2,12 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { House, MessageCircle, Handshake, Globe, User } from "lucide-react";
+import { Handshake, MessageCircle, Globe, User } from "lucide-react";
 import { tap } from "../lib/haptics";
 
 const TABS = [
-  { href: "/home", label: "Home", Icon: House },
+  { href: "/board", label: "Board", Icon: Handshake },
   { href: "/messages", label: "Messages", Icon: MessageCircle },
-  { href: "/coordination", label: "Coordination", Icon: Handshake },
   { href: "/network", label: "Network", Icon: Globe },
   { href: "/me", label: "Me", Icon: User },
 ] as const;

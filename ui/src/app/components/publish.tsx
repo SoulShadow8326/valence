@@ -19,7 +19,7 @@ const HINTS: Record<AtomKind, string> = {
   OBSERVATION: "Something you saw that others should know.",
 };
 
-const SHOW_ON = ["/home", "/messages", "/coordination"];
+const SHOW_ON = ["/board", "/messages"];
 
 export function Publish() {
   const pathname = usePathname();
@@ -39,7 +39,7 @@ export function Publish() {
       setKind(compose.kind ?? null);
       setTitle(compose.title ?? "");
       setTags((compose.tags ?? []).join(" "));
-      setFields({});
+      setFields(compose.fields ?? {});
       setError("");
     }
     if (!compose) seen.current = null;

@@ -133,8 +133,8 @@ func TestWorkedExample(t *testing.T) {
 	if len(mols) != 1 {
 		t.Fatalf("expected 1 molecule, got %d", len(mols))
 	}
-	if mols[0].Stability != Inert {
-		t.Fatalf("expected INERT before a4, got %s", mols[0].Stability)
+	if mols[0].Stability != Stable {
+		t.Fatalf("expected STABLE once the route bridges sector3 and sector7, got %s", mols[0].Stability)
 	}
 
 	a4 := mkAtom(t, b, atom.KindCapacity, []string{"water", "sector7", "surplus", "delivery"}, map[string]string{"resource": "water", "quantity": "500"}, nil, 1)
@@ -168,6 +168,36 @@ func TestWorkedExample(t *testing.T) {
 	}
 	if !foundUnstable {
 		t.Fatalf("expected an UNSTABLE molecule after contradiction, got %+v", mols)
+	}
+}
+
+func TestSupplyChain(t *testing.T) {
+	a, b, c := newKP(t), newKP(t), newKP(t)
+	need := mkAtom(t, a, atom.KindNeed, []string{"sector7", "water"}, map[string]string{"resource": "water", "quantity": "200"}, nil, 0)
+	capacity := mkAtom(t, b, atom.KindCapacity, []string{"sector3", "water"}, map[string]string{"resource": "water", "quantity": "500"}, nil, 0)
+
+	bonds := Bonds([]atom.Atom{need, capacity})
+	if hasBondType(bonds, Satisfies) {
+		t.Fatalf("cross-location need/capacity must not directly satisfy, got %+v", bonds)
+	}
+	for _, m := range Molecules([]atom.Atom{need, capacity}, bonds) {
+		if m.Stability == Stable {
+			t.Fatalf("need must not be answered without a route between the sectors")
+		}
+	}
+
+	route := mkAtom(t, c, atom.KindRoute, []string{"sector3", "sector7"}, map[string]string{"from": "sector3", "to": "sector7"}, nil, 0)
+	atoms := []atom.Atom{need, capacity, route}
+	bonds = Bonds(atoms)
+	if !hasBondType(bonds, Enables) {
+		t.Fatalf("route must ENABLES-bond the need and the capacity, got %+v", bonds)
+	}
+	mols := Molecules(atoms, bonds)
+	if len(mols) != 1 {
+		t.Fatalf("route should merge need and capacity into one molecule, got %d", len(mols))
+	}
+	if mols[0].Stability != Stable {
+		t.Fatalf("supply chain capacity->route->need should be STABLE, got %s", mols[0].Stability)
 	}
 }
 

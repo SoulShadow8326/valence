@@ -95,28 +95,23 @@ func evaluateStability(byID map[atom.AtomID]atom.Atom, members []atom.AtomID, bo
 		}
 	}
 
-	needSatisfied := make(map[atom.AtomID]bool)
+	haveNeed := false
+	capResources := make(map[string]bool)
 	for _, id := range members {
-		if byID[id].Kind == atom.KindNeed {
-			needSatisfied[id] = false
+		m := byID[id]
+		switch m.Kind {
+		case atom.KindNeed:
+			haveNeed = true
+		case atom.KindCapacity:
+			capResources[m.Payload["resource"]] = true
 		}
 	}
-	if len(needSatisfied) == 0 {
+	if !haveNeed {
 		return Inert
 	}
-	for _, b := range bonds {
-		if b.Type != Satisfies {
-			continue
-		}
-		if _, ok := needSatisfied[b.A]; ok {
-			needSatisfied[b.A] = true
-		}
-		if _, ok := needSatisfied[b.B]; ok {
-			needSatisfied[b.B] = true
-		}
-	}
-	for _, satisfied := range needSatisfied {
-		if !satisfied {
+	for _, id := range members {
+		m := byID[id]
+		if m.Kind == atom.KindNeed && !capResources[m.Payload["resource"]] {
 			return Inert
 		}
 	}

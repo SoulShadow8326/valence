@@ -8,9 +8,9 @@ import Loader from "./loader";
 import LogoMark from "./logo-mark";
 import { getHealth } from "../lib/api";
 import { IdentityCard } from "../components/identity-card";
-import { writeMode, writeNodeId, newNodeId, type Mode } from "../lib/store";
+import { writeMode, writeNodeId, writeProfile, newNodeId, type Mode } from "../lib/store";
 
-type Step = "intro" | "enter" | "card";
+type Step = "intro" | "enter" | "card" | "profile";
 
 function normalizeId(raw: string) {
   return raw.toLowerCase().replace(/[^a-z0-9]/g, "").slice(0, 128);
@@ -73,6 +73,8 @@ export default function Landing() {
   const [typed, setTyped] = useState("");
   const [generated, setGenerated] = useState("");
   const [copied, setCopied] = useState(false);
+  const [name, setName] = useState("");
+  const [about, setAbout] = useState("");
 
   useEffect(() => {
     getHealth().then(setServerUp);
@@ -83,13 +85,19 @@ export default function Landing() {
     if (!clean) return;
     writeNodeId(clean);
     writeMode("live");
-    router.push("/home");
+    router.push("/board");
+  }
+
+  function finishProfile() {
+    if (!name.trim()) return;
+    writeProfile({ name: name.trim(), about: about.trim() || undefined });
+    connect(generated);
   }
 
   function onGetStarted() {
     if (mode === "demo") {
       writeMode("demo");
-      router.push("/home");
+      router.push("/board");
       return;
     }
     setStep("enter");
@@ -282,8 +290,8 @@ export default function Landing() {
                   This is you
                 </h1>
                 <p className="mt-2 max-w-[300px] text-[14px] leading-relaxed text-muted">
-                  Save your Node ID somewhere safe. It&apos;s the only way back to this identity,
-                  and there&apos;s no reset.
+                  Save your Node ID. Together with your LiNode card it&apos;s how you return to this
+                  identity — the ID on its own can&apos;t act as you.
                 </p>
               </div>
 
@@ -317,10 +325,78 @@ export default function Landing() {
 
             <button
               type="button"
-              onClick={() => connect(generated)}
+              onClick={() => setStep("profile")}
               className="mt-4 flex min-h-[52px] items-center justify-center gap-1.5 rounded-full bg-accent text-[15px] font-semibold text-white transition-transform duration-150 active:scale-[0.98]"
             >
               I saved it, continue
+              <ArrowRight size={18} strokeWidth={2.6} />
+            </button>
+          </motion.div>
+        )}
+
+        {!loading && step === "profile" && (
+          <motion.div
+            key="profile"
+            className="flex flex-1 flex-col"
+            initial={{ opacity: 0, x: 24 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -24 }}
+            transition={{ duration: 0.28, ease: [0.16, 1, 0.3, 1] }}
+          >
+            <button
+              type="button"
+              onClick={() => setStep("card")}
+              aria-label="Back"
+              className="-ml-1 mb-4 flex h-9 w-9 items-center justify-center text-muted active:opacity-50"
+            >
+              <ChevronLeft size={24} strokeWidth={2.4} />
+            </button>
+
+            <div className="flex flex-1 flex-col">
+              <h1 className="text-[28px] font-bold leading-tight tracking-[-0.03em]">
+                How should people see you?
+              </h1>
+              <p className="mt-2 max-w-[300px] text-[14px] leading-relaxed text-muted">
+                This is shared with the network so nearby devices show your name instead of a code.
+              </p>
+
+              <label className="mt-6 block">
+                <span className="mb-1.5 block px-1 text-[13px] font-medium text-muted">Name</span>
+                <input
+                  autoFocus
+                  value={name}
+                  onChange={(event) => setName(event.target.value)}
+                  onKeyDown={(event) => event.key === "Enter" && finishProfile()}
+                  placeholder="Ana Ferreira"
+                  aria-label="Name"
+                  className="min-h-[52px] w-full rounded-[14px] bg-card px-4 text-[15px] outline-none"
+                  style={{ boxShadow: "inset 0 0 0 1.5px var(--line)" }}
+                />
+              </label>
+
+              <label className="mt-3 block">
+                <span className="mb-1.5 block px-1 text-[13px] font-medium text-muted">
+                  About <span className="text-faint">(optional)</span>
+                </span>
+                <input
+                  value={about}
+                  onChange={(event) => setAbout(event.target.value)}
+                  onKeyDown={(event) => event.key === "Enter" && finishProfile()}
+                  placeholder="Medic, east block"
+                  aria-label="About"
+                  className="min-h-[52px] w-full rounded-[14px] bg-card px-4 text-[15px] outline-none"
+                  style={{ boxShadow: "inset 0 0 0 1.5px var(--line)" }}
+                />
+              </label>
+            </div>
+
+            <button
+              type="button"
+              onClick={finishProfile}
+              disabled={!name.trim()}
+              className="mt-4 flex min-h-[52px] items-center justify-center gap-1.5 rounded-full bg-accent text-[15px] font-semibold text-white transition-opacity duration-100 active:scale-[0.98] disabled:opacity-30"
+            >
+              Enter the network
               <ArrowRight size={18} strokeWidth={2.6} />
             </button>
           </motion.div>

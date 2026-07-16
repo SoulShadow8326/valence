@@ -2,3 +2,4 @@
 valence-node
 **.key
 video/
+.env

@@ -16,6 +16,7 @@ import {
   getSessions,
   getIdentity,
   publishAtom,
+  publishProfile,
   lipSend,
   lipDial,
   subscribeGraph,
@@ -33,12 +34,21 @@ import type { AtomKind, Message, Thing } from "./objects";
 
 export type Mode = "demo" | "live";
 
-export type Compose = { kind?: AtomKind; title?: string; tags?: string[] };
+export type Profile = { name: string; about?: string };
+
+export type Compose = {
+  kind?: AtomKind;
+  title?: string;
+  tags?: string[];
+  fields?: Record<string, string>;
+};
 
 type Store = {
   mode: Mode;
   setMode: (mode: Mode) => void;
   nodeId: string;
+  profile: Profile;
+  profiles: Record<string, Profile>;
   things: Thing[];
   peers: PeerDTO[];
   graph: GraphDTO | null;
@@ -57,6 +67,7 @@ type Store = {
   send: (sessionId: string, text: string, replyTo?: string) => Promise<void>;
   retry: (sessionId: string, messageId: string) => Promise<void>;
   dial: (addr: string) => Promise<string>;
+  connectPeer: (pubKey: string) => Promise<string>;
   refresh: () => Promise<void>;
 };
 
@@ -116,9 +127,36 @@ export function writeNodeId(id: string) {
   nodeIdListeners.forEach((listener) => listener());
 }
 
-// A Node ID is the user's identity credential: the gateway derives the same
-// keypair from it every time, so re-entering it restores the same node. Opaque
-// lowercase base32, grouped into fours only for display.
+const PROFILE_KEY = "valence.profile";
+const EMPTY_PROFILE: Profile = { name: "" };
+let cachedProfile: Profile | null = null;
+let profileListeners: (() => void)[] = [];
+
+function subscribeProfile(listener: () => void) {
+  profileListeners.push(listener);
+  return () => {
+    profileListeners = profileListeners.filter((l) => l !== listener);
+  };
+}
+
+function profileSnapshot(): Profile {
+  if (cachedProfile === null) {
+    try {
+      const raw = window.localStorage.getItem(PROFILE_KEY);
+      cachedProfile = raw ? (JSON.parse(raw) as Profile) : EMPTY_PROFILE;
+    } catch {
+      cachedProfile = EMPTY_PROFILE;
+    }
+  }
+  return cachedProfile;
+}
+
+export function writeProfile(profile: Profile) {
+  cachedProfile = profile;
+  window.localStorage.setItem(PROFILE_KEY, JSON.stringify(profile));
+  profileListeners.forEach((listener) => listener());
+}
+
 export function newNodeId() {
   const alphabet = "abcdefghijklmnopqrstuvwxyz234567";
   const bytes = new Uint8Array(16);
@@ -133,6 +171,7 @@ export function groupNodeId(id: string) {
 export function StoreProvider({ children }: { children: React.ReactNode }) {
   const mode = useSyncExternalStore(subscribeMode, modeSnapshot, () => "live" as Mode);
   const nodeId = useSyncExternalStore(subscribeNodeId, nodeIdSnapshot, () => "");
+  const profile = useSyncExternalStore(subscribeProfile, profileSnapshot, () => EMPTY_PROFILE);
   const [graph, setGraph] = useState<GraphDTO | null>(null);
   const [livePeers, setLivePeers] = useState<PeerDTO[]>([]);
   const [sessions, setSessions] = useState<SessionDTO[]>([]);
@@ -222,6 +261,16 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     };
   }, [mode, nodeId, refresh]);
 
+  const profiles = useMemo(() => {
+    const map: Record<string, Profile> = {};
+    for (const a of graph?.atoms ?? []) {
+      if (a.kind === "PROFILE" && a.payload?.name) {
+        map[a.pubKey] = { name: a.payload.name, about: a.payload.about };
+      }
+    }
+    return map;
+  }, [graph]);
+
   const things = useMemo(() => {
     if (mode === "demo") {
       return [...demoExtra, ...demoBase].map((thing) =>
@@ -231,9 +280,26 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       );
     }
     const hep = graph ? graphToThings(graph) : [];
-    const lip = sessions.map((s) => sessionToThing(s, messages[s.id] ?? []));
+    const lip = sessions.map((s) => {
+      const thing = sessionToThing(s, messages[s.id] ?? []);
+      const name = profiles[s.peerId]?.name;
+      return name ? { ...thing, title: name } : thing;
+    });
     return [...lip, ...hep];
-  }, [mode, demoExtra, demoBase, graph, sessions, messages]);
+  }, [mode, demoExtra, demoBase, graph, sessions, messages, profiles]);
+
+  const announced = useRef("");
+  useEffect(() => {
+    if (mode === "demo" || !liveConnected || !profile.name) return;
+    const key = `${nodeId}|${profile.name}|${profile.about ?? ""}`;
+    if (announced.current === key) return;
+    announced.current = key;
+    publishProfile(profile.name, profile.about)
+      .then(() => refresh())
+      .catch(() => {
+        announced.current = "";
+      });
+  }, [mode, liveConnected, profile, nodeId, refresh]);
 
   const publish = useCallback(
     async (kind: AtomKind, tags: string[], payload: Record<string, string>) => {
@@ -338,11 +404,22 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     [refresh],
   );
 
+  const connectPeer = useCallback(
+    async (pubKey: string) => {
+      const sessionId = await dial(pubKey);
+      await send(sessionId, "Found you nearby and added you as a connection 👋");
+      return sessionId;
+    },
+    [dial, send],
+  );
+
   const value = useMemo(
     () => ({
       mode,
       setMode,
       nodeId,
+      profile,
+      profiles,
       things,
       peers,
       graph,
@@ -361,12 +438,15 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       send,
       retry,
       dial,
+      connectPeer,
       refresh,
     }),
     [
       mode,
       setMode,
       nodeId,
+      profile,
+      profiles,
       things,
       peers,
       graph,
@@ -380,6 +460,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       send,
       retry,
       dial,
+      connectPeer,
       refresh,
     ],
   );

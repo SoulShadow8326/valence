@@ -5,7 +5,7 @@ export default function manifest(): MetadataRoute.Manifest {
     name: "Valence",
     short_name: "Valence",
     description: "Coordinate with the people around you, with no towers and no servers.",
-    start_url: "/home",
+    start_url: "/board",
     display: "standalone",
     background_color: "#f4f4f5",
     theme_color: "#f4f4f5",

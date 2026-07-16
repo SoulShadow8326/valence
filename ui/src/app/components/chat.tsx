@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { clockOf, sameGroup, type Message, type Thing } from "../lib/objects";
 import { useStore } from "../lib/store";
+import { extractAtom } from "../lib/api";
 import { useToast } from "./toast";
 import { tap } from "../lib/haptics";
 import { ContextMenu, useLongPress, type MenuState } from "./context-menu";
@@ -172,7 +173,7 @@ function Bubble({
 }
 
 export function Chat({ thing }: { thing: Thing }) {
-  const { send, retry, openCompose } = useStore();
+  const { send, retry, openCompose, close, mode } = useStore();
   const toast = useToast();
   const [draft, setDraft] = useState("");
   const [replyTo, setReplyTo] = useState<Message | null>(null);
@@ -185,7 +186,7 @@ export function Chat({ thing }: { thing: Thing }) {
   const messages = thing.messages ?? [];
   const byId = new Map(messages.map((m) => [m.id, m]));
   const lastMessage = messages[messages.length - 1];
-  const waiting = Boolean(lastMessage?.mine && lastMessage.state === "sent");
+  const waiting = Boolean(mode === "demo" && lastMessage?.mine && lastMessage.state === "sent");
   const lastMineId = waiting ? lastMessage!.id : null;
 
   useEffect(() => {
@@ -243,6 +244,22 @@ export function Chat({ thing }: { thing: Thing }) {
     }
   }
 
+  async function sendToBoard(message: Message) {
+    toast.ok("Reading your message…");
+    const extracted = await extractAtom(message.text);
+    close();
+    if (extracted) {
+      openCompose({
+        kind: extracted.kind,
+        title: extracted.title || message.text.slice(0, 60),
+        tags: extracted.tags,
+        fields: extracted.fields,
+      });
+    } else {
+      openCompose({ title: message.text.slice(0, 60), tags: thing.tags });
+    }
+  }
+
   function startReply(message: Message) {
     setReplyTo(message);
     inputRef.current?.focus();
@@ -261,9 +278,9 @@ export function Chat({ thing }: { thing: Thing }) {
           },
           { label: "Copy", Icon: Copy, onSelect: () => copy(message.text) },
           {
-            label: "Make it shared",
+            label: "Send to the Board",
             Icon: Sparkles,
-            onSelect: () => openCompose({ title: message.text.slice(0, 60), tags: thing.tags }),
+            onSelect: () => sendToBoard(message),
           },
         ],
       });

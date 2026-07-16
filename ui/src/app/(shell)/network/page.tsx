@@ -1,16 +1,18 @@
 "use client";
 
-import { Waypoints } from "lucide-react";
+import { Waypoints, ChevronRight } from "lucide-react";
 import { useStore } from "../../lib/store";
 import { useNow } from "../../lib/clock";
 import { agoOf } from "../../lib/objects";
 import { LargeTitle, Group, Row, Empty, Count } from "../../components/group";
 import { KnowledgeGraph } from "../../components/knowledge-graph";
+import { useConnect } from "../../components/connect-peer";
 import { Switch } from "../../components/switch";
 import { Offline } from "../../components/offline";
 
 export default function NetworkPage() {
-  const { things, peers, graph, devMode, setDevMode, connected, loading } = useStore();
+  const { things, peers, profiles, graph, devMode, setDevMode, connected, loading } = useStore();
+  const { start, sheet } = useConnect();
   const now = useNow();
   const atoms = things.filter((thing) => thing.kind !== "CONVERSATION");
 
@@ -36,25 +38,32 @@ export default function NetworkPage() {
       {peers.length ? (
         <Group
           label="Connections"
-          footer="Each of these is another device running Valence nearby. The code below is their identity, not an address — it won't change even if their network does."
+          footer="Each of these is another device running Valence nearby. Tap one to open a private line — you reach them by their identity, which won't change even if their network does."
         >
-          {peers.map((peer) => (
-            <Row key={peer.pubKey} inset={48}>
-              <Waypoints size={22} strokeWidth={2.25} className="shrink-0" />
-              <span className="min-w-0 flex-1">
-                <span className="block truncate font-mono text-[13px] font-semibold leading-tight">
-                  {peer.pubKey.slice(0, 12)}
+          {peers.map((peer) => {
+            const name = profiles[peer.pubKey]?.name;
+            return (
+              <Row key={peer.pubKey} onClick={() => start(peer)} inset={48}>
+                <Waypoints size={22} strokeWidth={2.25} className="shrink-0" />
+                <span className="min-w-0 flex-1">
+                  <span
+                    className={`block truncate font-semibold leading-tight ${
+                      name ? "text-[15px] tracking-[-0.01em]" : "font-mono text-[13px]"
+                    }`}
+                  >
+                    {name ?? peer.pubKey.slice(0, 12)}
+                  </span>
+                  <span className="mt-0.5 block truncate text-[12px] leading-tight text-muted">
+                    {name ? `${peer.pubKey.slice(0, 10)} · ${peer.transport}` : peer.addr}
+                  </span>
                 </span>
-                <span className="mt-0.5 block truncate text-[12px] leading-tight text-muted">
-                  {peer.addr}
+                <span className="shrink-0 text-right">
+                  <span className="block text-[11px] text-faint">{agoOf(peer.lastSeen, now)}</span>
                 </span>
-              </span>
-              <span className="shrink-0 text-right">
-                <span className="block text-[13px] capitalize text-muted">{peer.transport}</span>
-                <span className="block text-[11px] text-faint">{agoOf(peer.lastSeen, now)}</span>
-              </span>
-            </Row>
-          ))}
+                <ChevronRight size={15} className="shrink-0 text-faint" strokeWidth={2.75} />
+              </Row>
+            );
+          })}
         </Group>
       ) : (
         <Empty
@@ -126,6 +135,8 @@ export default function NetworkPage() {
           </Group>
         </>
       )}
+
+      {sheet}
     </div>
   );
 }

@@ -1,16 +1,13 @@
-// Command gateway hosts one Valence node per web user, keyed by an opaque Node
-// ID carried in the URL path (/n/<nodeid>/...). All nodes live in this one
-// process, share the host, and discover each other over mDNS on loopback, so
-// every browser becomes a real, distinct peer that converges with the others.
-//
-// A node's identity is derived deterministically from its Node ID, so re-entering
-// the same Node ID always restores the same identity — no per-user keys on disk.
 package main
 
 import (
+	"bytes"
 	"crypto/ed25519"
 	"crypto/sha256"
+	"encoding/hex"
+	"encoding/json"
 	"flag"
+	"io"
 	"log"
 	"net/http"
 	"strings"
@@ -28,6 +25,7 @@ import (
 type tenant struct {
 	srv      *api.Server
 	node     *engine.Node
+	pub      string
 	lastSeen time.Time
 }
 
@@ -44,13 +42,11 @@ func (t *tenant) stop() {
 type gateway struct {
 	mu      sync.Mutex
 	tenants map[string]*tenant
+	byPub   map[string]*tenant
 	max     int
 	ttl     time.Duration
 }
 
-// keysFromID derives a stable ed25519 identity from the Node ID. Same ID in,
-// same keypair out — that is what makes the "paste your Node ID to reconnect"
-// flow return the same identity every time, with nothing persisted.
 func keysFromID(id string) keystore.KeyPair {
 	seed := sha256.Sum256([]byte(id))
 	priv := ed25519.NewKeyFromSeed(seed[:])
@@ -80,7 +76,12 @@ func newTenant(id string) (*tenant, error) {
 	}
 	n.Lip = lip
 
-	return &tenant{srv: api.New(n), node: n, lastSeen: time.Now()}, nil
+	return &tenant{
+		srv:      api.New(n),
+		node:     n,
+		pub:      hex.EncodeToString(keys.Pub),
+		lastSeen: time.Now(),
+	}, nil
 }
 
 func (g *gateway) get(id string) (*tenant, error) {
@@ -99,8 +100,32 @@ func (g *gateway) get(id string) (*tenant, error) {
 		return nil, err
 	}
 	g.tenants[id] = t
+	g.byPub[t.pub] = t
 	log.Printf("gateway: spun up node for %s… (%d live)", id[:min(6, len(id))], len(g.tenants))
 	return t, nil
+}
+
+func (g *gateway) lipAddrForPub(pub string) (string, bool) {
+	g.mu.Lock()
+	defer g.mu.Unlock()
+	t, ok := g.byPub[pub]
+	if !ok {
+		return "", false
+	}
+	t.lastSeen = time.Now()
+	return t.node.Lip.Addr(), true
+}
+
+func isHex64(s string) bool {
+	if len(s) != 64 {
+		return false
+	}
+	for _, c := range s {
+		if !((c >= '0' && c <= '9') || (c >= 'a' && c <= 'f')) {
+			return false
+		}
+	}
+	return true
 }
 
 func (g *gateway) evictOldestLocked() {
@@ -112,8 +137,10 @@ func (g *gateway) evictOldestLocked() {
 		}
 	}
 	if oldestID != "" {
-		g.tenants[oldestID].stop()
+		victim := g.tenants[oldestID]
+		victim.stop()
 		delete(g.tenants, oldestID)
+		delete(g.byPub, victim.pub)
 		log.Printf("gateway: evicted node %s… (capacity)", oldestID[:min(6, len(oldestID))])
 	}
 }
@@ -126,6 +153,7 @@ func (g *gateway) sweep() {
 			if t.lastSeen.Before(cutoff) {
 				t.stop()
 				delete(g.tenants, id)
+				delete(g.byPub, t.pub)
 				log.Printf("gateway: evicted node %s… (idle)", id[:min(6, len(id))])
 			}
 		}
@@ -133,9 +161,6 @@ func (g *gateway) sweep() {
 	}
 }
 
-// normalizeID keeps only [a-z0-9] and lowercases, so the cosmetic spaces in the
-// grouped display ("abcd efgh") and any stray casing collapse to one canonical
-// form. Client and server must agree on this because the keypair derives from it.
 func normalizeID(raw string) string {
 	var b strings.Builder
 	for _, r := range strings.ToLower(raw) {
@@ -150,7 +175,6 @@ func normalizeID(raw string) string {
 }
 
 func (g *gateway) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	// Answer preflight here so a bare OPTIONS never spins up a node.
 	if r.Method == http.MethodOptions {
 		w.Header().Set("Access-Control-Allow-Origin", "*")
 		w.Header().Set("Access-Control-Allow-Methods", "GET, POST")
@@ -186,11 +210,31 @@ func (g *gateway) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Rewrite to the node-local path and hand off to that tenant's handler,
-	// which applies CORS. Streaming (SSE) passes straight through.
 	r2 := r.Clone(r.Context())
 	r2.URL.Path = sub
 	r2.URL.RawPath = ""
+
+	if r.Method == http.MethodPost && sub == "/lip/dial" {
+		body, _ := io.ReadAll(r.Body)
+		var req map[string]any
+		if json.Unmarshal(body, &req) == nil {
+			if addr, ok := req["addr"].(string); ok && addr != "" && !strings.Contains(addr, ":") {
+				if isHex64(addr) {
+					if a, found := g.lipAddrForPub(addr); found {
+						req["addr"] = a
+						body, _ = json.Marshal(req)
+					}
+				} else if target, terr := g.get(normalizeID(addr)); terr == nil {
+					req["addr"] = target.node.Lip.Addr()
+					body, _ = json.Marshal(req)
+				}
+			}
+		}
+		r2.Body = io.NopCloser(bytes.NewReader(body))
+		r2.ContentLength = int64(len(body))
+		r2.Header.Del("Content-Length")
+	}
+
 	t.srv.Handler().ServeHTTP(w, r2)
 }
 
@@ -200,7 +244,12 @@ func main() {
 	idle := flag.Duration("idle", 30*time.Minute, "evict a node after this long idle")
 	flag.Parse()
 
-	g := &gateway{tenants: map[string]*tenant{}, max: *maxNodes, ttl: *idle}
+	g := &gateway{
+		tenants: map[string]*tenant{},
+		byPub:   map[string]*tenant{},
+		max:     *maxNodes,
+		ttl:     *idle,
+	}
 	go g.sweep()
 
 	log.Printf("valence gateway on %s (max %d nodes, idle %s)", *addr, *maxNodes, *idle)

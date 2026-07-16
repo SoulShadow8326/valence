@@ -9,11 +9,13 @@ export function IdentityCard({
   peers,
   live,
   nodeId,
+  name,
 }: {
   pubKey: string;
   peers: number;
   live: boolean;
   nodeId?: string;
+  name?: string;
 }) {
   const onboarding = Boolean(nodeId);
   const grouped = nodeId
@@ -57,7 +59,7 @@ export function IdentityCard({
 
         <div>
           <p className="text-[21px] font-bold leading-none tracking-[-0.02em]">
-            {onboarding ? "Your Node ID" : "This device"}
+            {onboarding ? "Your Node ID" : name || "This device"}
           </p>
           <p className="mt-1.5 text-[12px] text-white/50">
             {onboarding

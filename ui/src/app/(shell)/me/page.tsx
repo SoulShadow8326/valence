@@ -18,7 +18,7 @@ const TITLES: Record<Panel, string> = {
 };
 
 export default function MePage() {
-  const { identity, peers, connected, mode, setMode, nodeId } = useStore();
+  const { identity, peers, connected, mode, setMode, nodeId, profile } = useStore();
   const toast = useToast();
   const [panel, setPanel] = useState<Panel | null>(null);
   const [copied, setCopied] = useState(false);
@@ -58,7 +58,12 @@ export default function MePage() {
       </LargeTitle>
 
       <div className="px-4 pt-1" data-reveal>
-        <IdentityCard pubKey={identity} peers={peers.length} live={connected} />
+        <IdentityCard
+          pubKey={identity}
+          peers={peers.length}
+          live={connected}
+          name={mode === "live" ? profile.name : undefined}
+        />
       </div>
 
       <Group label="This node">
@@ -123,8 +128,8 @@ export default function MePage() {
                   )}
                 </button>
                 <p className="mt-2.5 text-[12px] leading-relaxed text-muted">
-                  Enter this on another device to be the same person there. Anyone with it is you,
-                  so keep it private.
+                  Your Node ID only works together with your LiNode card. On its own it can&apos;t
+                  log in or act as anyone, so it&apos;s safe to share when you connect.
                 </p>
               </div>
             )}

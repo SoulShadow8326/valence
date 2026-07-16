@@ -8,9 +8,6 @@ import {
 
 export const NODE_URL = process.env.NEXT_PUBLIC_NODE_URL ?? "http://127.0.0.1:8080";
 
-// When hosted behind the gateway, every request is scoped to the user's node by
-// their Node ID (/n/<id>/...). Empty token = talk to a node directly, so a local
-// single-node `go run .` on NODE_URL keeps working with no token.
 let apiToken = "";
 
 export function setApiToken(token: string) {
@@ -85,6 +82,14 @@ export const publishAtom = (body: {
   refs?: string[];
 }) => post<AtomDTO>("/publish", { refs: [], ...body });
 
+export const publishProfile = (name: string, about?: string) =>
+  post<AtomDTO>("/publish", {
+    kind: "PROFILE",
+    tags: [],
+    refs: [],
+    payload: about ? { name, about } : { name },
+  });
+
 export const crystallize = (body: {
   kind: AtomKind;
   tags: string[];
@@ -95,6 +100,40 @@ export const lipSend = (sessionId: string, text: string) =>
   post<{ ok: boolean }>("/lip/send", { sessionId, text });
 
 export const lipDial = (addr: string) => post<{ sessionId: string }>("/lip/dial", { addr });
+
+export type Extracted = {
+  kind: AtomKind;
+  title: string;
+  tags: string[];
+  fields: Record<string, string>;
+};
+
+const EXTRACT_FIELDS: Record<AtomKind, string[]> = {
+  NEED: ["resource", "quantity"],
+  CAPACITY: ["resource", "quantity"],
+  ROUTE: ["from", "to"],
+  OBSERVATION: ["subject", "state"],
+};
+
+export async function extractAtom(text: string): Promise<Extracted | null> {
+  try {
+    const res = await fetch("/api/extract", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ text }),
+    });
+    if (!res.ok) return null;
+    const d = await res.json();
+    const kind = d.kind as AtomKind;
+    if (!EXTRACT_FIELDS[kind]) return null;
+    const fields: Record<string, string> = {};
+    for (const k of EXTRACT_FIELDS[kind]) if (d[k]) fields[k] = String(d[k]);
+    const tags = Array.isArray(d.tags) ? d.tags.map((t: unknown) => String(t)) : [];
+    return { kind, title: typeof d.title === "string" ? d.title : "", tags, fields };
+  } catch {
+    return null;
+  }
+}
 
 export function subscribeGraph(onChange: (hash: string) => void) {
   const es = new EventSource(`${base()}/events`);

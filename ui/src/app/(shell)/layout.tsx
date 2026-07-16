@@ -4,6 +4,7 @@ import { Reveal } from "../components/reveal";
 import { Nav } from "../components/nav";
 import { Publish } from "../components/publish";
 import { ObjectDetail } from "../components/object-detail";
+import { AnswerWatcher } from "../components/answer-watcher";
 
 export default function ShellLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -18,6 +19,7 @@ export default function ShellLayout({ children }: { children: React.ReactNode })
         <Publish />
         <Nav />
         <ObjectDetail />
+        <AnswerWatcher />
       </ToastProvider>
     </StoreProvider>
   );

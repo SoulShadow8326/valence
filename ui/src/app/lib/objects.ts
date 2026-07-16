@@ -92,6 +92,26 @@ export function titleOf(kind: AtomKind, payload: Record<string, string>) {
   }
 }
 
+function cap(s: string) {
+  return s.charAt(0).toUpperCase() + s.slice(1);
+}
+
+export function shortLabel(thing: Thing) {
+  const p = thing.payload;
+  switch (thing.kind) {
+    case "NEED":
+    case "CAPACITY":
+      if (p.resource) return p.quantity ? `${cap(p.resource)} ×${p.quantity}` : cap(p.resource);
+      return thing.title;
+    case "ROUTE":
+      return p.from && p.to ? `${p.from}→${p.to}` : thing.title;
+    case "OBSERVATION":
+      return p.subject ? cap(p.subject) : thing.title;
+    default:
+      return thing.title;
+  }
+}
+
 export function detailOf(kind: AtomKind, payload: Record<string, string>) {
   switch (kind) {
     case "NEED":

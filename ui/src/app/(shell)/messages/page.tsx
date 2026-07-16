@@ -74,7 +74,7 @@ export default function MessagesPage() {
       ) : (
         <Empty
           title="No conversations yet"
-          sub="Connect to someone's node address above to open a private line."
+          sub="Enter someone's Node ID above to open a private line."
         />
       )}
 
@@ -84,13 +84,16 @@ export default function MessagesPage() {
             autoFocus
             value={addr}
             onChange={(event) => setAddr(event.target.value)}
-            placeholder="127.0.0.1:9201"
-            aria-label="Node address"
-            className="min-h-[46px] w-full rounded-[12px] bg-card px-3.5 font-mono text-[14px] outline-none"
+            autoCapitalize="none"
+            autoCorrect="off"
+            spellCheck={false}
+            placeholder="abcd efgh ijkl mnop"
+            aria-label="Node ID"
+            className="min-h-[46px] w-full rounded-[12px] bg-card px-3.5 font-mono text-[14px] tracking-[0.06em] outline-none"
           />
           <p className="px-1 text-[12px] leading-relaxed text-muted">
-            Their node address, not an account. There is no directory and no lookup, you reach
-            the device directly.
+            Their Node ID, not an account. There is no directory and no lookup, you reach the
+            person directly by their identity.
           </p>
           {error && (
             <p className="px-1 text-[13px] font-medium" style={{ color: "var(--accent)" }}>
